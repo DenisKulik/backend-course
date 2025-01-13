@@ -5,7 +5,7 @@ import {
   CourseURIParamsModel,
   CourseViewModel,
 } from "../models";
-import express, { Express, Response } from "express";
+import express, { Response } from "express";
 import { getCourseViewModel } from "../utils";
 import {
   Course,
