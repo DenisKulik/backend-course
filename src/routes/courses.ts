@@ -6,19 +6,18 @@ import {
   CourseViewModel,
 } from "../models";
 import { Router, Response } from "express";
-import { getCourseViewModel } from "../utils";
 import {
-  Course,
-  Db,
   HttpStatuses,
   RequestBody,
   RequestBodyParams,
   RequestParams,
   RequestQuery,
 } from "../types";
+import { CoursesRepository, ICoursesRepository } from "../repositories";
 
-export const getCoursesRouter = (db: Db) => {
+export const getCoursesRouter = () => {
   const router = Router();
+  const repository: ICoursesRepository = new CoursesRepository();
 
   router.get(
     "/",
@@ -26,15 +25,8 @@ export const getCoursesRouter = (db: Db) => {
       req: RequestQuery<CoursesQueryModel>,
       res: Response<CourseViewModel[]>,
     ) => {
-      let foundCourses = db.courses;
-
-      if (req.query.title) {
-        foundCourses = foundCourses.filter((c) => {
-          return c.title.includes(req.query.title!);
-        });
-      }
-
-      res.json(foundCourses.map((dbCourse) => getCourseViewModel(dbCourse)));
+      const foundCourses = repository.findCourses(req.query.title);
+      res.json(foundCourses);
     },
   );
 
@@ -44,14 +36,14 @@ export const getCoursesRouter = (db: Db) => {
       req: RequestParams<CourseURIParamsModel>,
       res: Response<CourseViewModel | string>,
     ) => {
-      const foundCourse = db.courses.find((c) => c.id === +req.params.id);
+      const foundCourse = repository.findCourseById(req.params.id);
 
       if (!foundCourse) {
         res.sendStatus(HttpStatuses.NOT_FOUND).send("Course not found");
         return;
       }
 
-      res.status(HttpStatuses.OK).json(getCourseViewModel(foundCourse));
+      res.status(HttpStatuses.OK).json(foundCourse);
     },
   );
 
@@ -66,30 +58,21 @@ export const getCoursesRouter = (db: Db) => {
         return;
       }
 
-      const createdCourse: Course = {
-        id: new Date().getTime(),
-        title: req.body.title,
-        studentsCount: 0,
-      };
-
-      db.courses.push(createdCourse);
-      res.status(HttpStatuses.CREATED).json(getCourseViewModel(createdCourse));
+      const createdCourse = repository.createCourse(req.body);
+      res.status(HttpStatuses.CREATED).json(createdCourse);
     },
   );
 
   router.delete(
     "/:id",
     (req: RequestParams<CourseURIParamsModel>, res: Response) => {
-      const foundCourseIdx = db.courses.findIndex(
-        (c) => c.id === +req.params.id,
-      );
+      const isDeletedCourse = repository.deleteCourse(req.params.id);
 
-      if (foundCourseIdx === -1) {
+      if (!isDeletedCourse) {
         res.sendStatus(HttpStatuses.NOT_FOUND).send("Course not found");
         return;
       }
 
-      db.courses.splice(foundCourseIdx, 1);
       res.sendStatus(HttpStatuses.NO_CONTENT);
     },
   );
@@ -105,22 +88,14 @@ export const getCoursesRouter = (db: Db) => {
         return;
       }
 
-      const foundCourseIdx = db.courses.findIndex(
-        (c) => c.id === +req.params.id,
-      );
+      const updatedCourse = repository.updateCourse(req.params.id, req.body);
 
-      if (foundCourseIdx === -1) {
+      if (!updatedCourse) {
         res.sendStatus(HttpStatuses.NOT_FOUND).send("Course not found");
         return;
       }
 
-      const updatedCourse = {
-        ...db.courses[foundCourseIdx],
-        ...req.body,
-      };
-
-      db.courses[foundCourseIdx] = updatedCourse;
-      res.status(HttpStatuses.CREATED).json(getCourseViewModel(updatedCourse));
+      res.status(HttpStatuses.CREATED).json(updatedCourse);
     },
   );
 

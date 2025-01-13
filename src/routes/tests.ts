@@ -1,11 +1,13 @@
 import { Router, Request, Response } from "express";
 import { Db, HttpStatuses } from "../types";
+import { ITestsRepository, TestsRepository } from "../repositories";
 
-export const getTestsRouter = (db: Db) => {
+export const getTestsRouter = () => {
   const router = Router();
+  const repository: ITestsRepository = new TestsRepository();
 
   router.delete("/data", (req: Request, res: Response) => {
-    db.courses = [];
+    repository.clearCoursesDb();
     res.sendStatus(HttpStatuses.NO_CONTENT);
   });
 
