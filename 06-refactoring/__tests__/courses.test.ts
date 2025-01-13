@@ -1,8 +1,8 @@
 import request from "supertest";
 
 import app from "../src/app";
-import { HttpStatuses } from "../src/app.types";
 import { CourseCreateModel, CourseUpdateModel } from "../src/models";
+import { HttpStatuses } from "../src/types";
 
 describe("courses", () => {
   beforeAll(async () => {
