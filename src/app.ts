@@ -3,6 +3,7 @@ import { getCoursesRouter, getTestsRouter } from "./routes";
 import { db } from "./db";
 
 const app: Express = express();
+
 export const jsonBodyMiddleware = express.json();
 app.use(jsonBodyMiddleware);
 

@@ -5,7 +5,7 @@ import {
   CourseURIParamsModel,
   CourseViewModel,
 } from "../models";
-import express, { Response } from "express";
+import { Router, Response } from "express";
 import { getCourseViewModel } from "../utils";
 import {
   Course,
@@ -17,10 +17,8 @@ import {
   RequestQuery,
 } from "../types";
 
-export const routerCourses = express.Router();
-
 export const getCoursesRouter = (db: Db) => {
-  const router = express.Router();
+  const router = Router();
 
   router.get(
     "/",
