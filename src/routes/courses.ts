@@ -1,3 +1,4 @@
+import { ValidationError } from "express-validator";
 import {
   CourseCreateModel,
   CoursesQueryModel,
@@ -7,6 +8,7 @@ import {
 } from "../models";
 import { Router, Response } from "express";
 import {
+  ErrorResponse,
   HttpStatuses,
   RequestBody,
   RequestBodyParams,
@@ -14,6 +16,8 @@ import {
   RequestQuery,
 } from "../types";
 import { CoursesRepository, ICoursesRepository } from "../repositories";
+import { courseValidator } from "../utils";
+import { inputValidationMiddleware } from "../middlewares";
 
 export const getCoursesRouter = () => {
   const router = Router();
@@ -34,12 +38,14 @@ export const getCoursesRouter = () => {
     "/:id",
     (
       req: RequestParams<CourseURIParamsModel>,
-      res: Response<CourseViewModel | string>,
+      res: Response<CourseViewModel | ErrorResponse>,
     ) => {
       const foundCourse = repository.findCourseById(req.params.id);
 
       if (!foundCourse) {
-        res.sendStatus(HttpStatuses.NOT_FOUND).send("Course not found");
+        res
+          .sendStatus(HttpStatuses.NOT_FOUND)
+          .send({ message: "Course not found" });
         return;
       }
 
@@ -49,15 +55,12 @@ export const getCoursesRouter = () => {
 
   router.post(
     "/",
+    courseValidator,
+    inputValidationMiddleware,
     (
       req: RequestBody<CourseCreateModel>,
-      res: Response<CourseViewModel | string>,
+      res: Response<CourseViewModel | { errors: ValidationError[] }>,
     ) => {
-      if (!req.body.title || !req.body.title.trim()) {
-        res.sendStatus(HttpStatuses.BAD_REQUEST).send("Title is required");
-        return;
-      }
-
       const createdCourse = repository.createCourse(req.body);
       res.status(HttpStatuses.CREATED).json(createdCourse);
     },
@@ -65,11 +68,16 @@ export const getCoursesRouter = () => {
 
   router.delete(
     "/:id",
-    (req: RequestParams<CourseURIParamsModel>, res: Response) => {
+    (
+      req: RequestParams<CourseURIParamsModel>,
+      res: Response<ErrorResponse | undefined>,
+    ) => {
       const isDeletedCourse = repository.deleteCourse(req.params.id);
 
       if (!isDeletedCourse) {
-        res.sendStatus(HttpStatuses.NOT_FOUND).send("Course not found");
+        res
+          .sendStatus(HttpStatuses.NOT_FOUND)
+          .send({ message: "Course not found" });
         return;
       }
 
@@ -79,19 +87,20 @@ export const getCoursesRouter = () => {
 
   router.put(
     "/:id",
+    courseValidator,
+    inputValidationMiddleware,
     (
       req: RequestBodyParams<CourseUpdateModel, CourseURIParamsModel>,
-      res: Response<CourseViewModel | string>,
+      res: Response<
+        CourseViewModel | { errors: ValidationError[] } | ErrorResponse
+      >,
     ) => {
-      if (!req.body.title || !req.body.title.trim()) {
-        res.sendStatus(HttpStatuses.BAD_REQUEST).send("Title is required");
-        return;
-      }
-
       const updatedCourse = repository.updateCourse(req.params.id, req.body);
 
       if (!updatedCourse) {
-        res.sendStatus(HttpStatuses.NOT_FOUND).send("Course not found");
+        res
+          .sendStatus(HttpStatuses.NOT_FOUND)
+          .send({ message: "Course not found" });
         return;
       }
 

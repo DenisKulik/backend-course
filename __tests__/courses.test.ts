@@ -16,14 +16,15 @@ describe("courses", () => {
   });
 
   it("shouldn't create a course with incorrect data", async () => {
-    const res = await request(app).post("/courses").send({ title: "" });
+    const course: CourseCreateModel = { title: "", price: -10 };
+    const res = await request(app).post("/courses").send(course);
     const db = await request(app).get("/courses");
     expect(res.status).toEqual(HttpStatuses.BAD_REQUEST);
     expect(db.body.length).toBe(0);
   });
 
   it("should create a course with correct data", async () => {
-    const course: CourseCreateModel = { title: "test" };
+    const course: CourseCreateModel = { title: "test", price: 1000 };
     const res = await request(app).post("/courses").send(course);
     const db = await request(app).get("/courses");
     expect(res.status).toEqual(HttpStatuses.CREATED);
@@ -34,7 +35,7 @@ describe("courses", () => {
   it("should update a course", async () => {
     const db = await request(app).get("/courses");
     const courseId = db.body[0].id;
-    const course: CourseUpdateModel = { title: "test_updated" };
+    const course: CourseUpdateModel = { title: "test_updated", price: 1000 };
     const res = await request(app).put(`/courses/${courseId}`).send(course);
     expect(res.status).toEqual(HttpStatuses.CREATED);
     expect(res.body.title).toEqual("test_updated");
@@ -43,7 +44,7 @@ describe("courses", () => {
   it("shouldn't update a course with incorrect data", async () => {
     const db = await request(app).get("/courses");
     const courseId = db.body[0].id;
-    const course: CourseUpdateModel = { title: " " };
+    const course: CourseUpdateModel = { title: " ", price: 999999999999999999 };
     const res = await request(app).put(`/courses/${courseId}`).send(course);
     expect(res.status).toEqual(HttpStatuses.BAD_REQUEST);
   });

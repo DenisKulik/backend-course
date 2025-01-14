@@ -8,11 +8,16 @@ export type RequestBodyParams<TBody, TParams> = Request<TParams, {}, TBody>;
 export type Course = {
   id: number;
   title: string;
+  price: number;
   studentsCount: number;
 };
 
 export type Db = {
   courses: Course[];
+};
+
+export type ErrorResponse = {
+  message: string;
 };
 
 export enum HttpStatuses {

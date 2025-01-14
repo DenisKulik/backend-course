@@ -31,7 +31,9 @@ export class CoursesRepository implements ICoursesRepository {
   }
 
   findCourseById(id: string): CourseViewModel | null {
-    const foundCourse = this.db.courses.find((c) => c.id === +id);
+    const foundCourse: Course | undefined = this.db.courses.find(
+      (c) => c.id === +id,
+    );
     return foundCourse ? getCourseViewModel(foundCourse) : null;
   }
 
@@ -39,6 +41,7 @@ export class CoursesRepository implements ICoursesRepository {
     const createdCourse: Course = {
       id: new Date().getTime(),
       title: course.title,
+      price: course.price,
       studentsCount: 0,
     };
 
@@ -58,7 +61,7 @@ export class CoursesRepository implements ICoursesRepository {
   }
 
   updateCourse(id: string, course: CourseUpdateModel): CourseViewModel | null {
-    const foundCourseIdx = db.courses.findIndex((c) => c.id === +id);
+    const foundCourseIdx: number = db.courses.findIndex((c) => c.id === +id);
 
     if (foundCourseIdx === -1) {
       return null;
