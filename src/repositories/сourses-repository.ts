@@ -1,43 +1,40 @@
 import { getCourseViewModel } from "../utils";
-import { db } from "../db";
 import {
   CourseCreateModel,
   CourseUpdateModel,
   CourseViewModel,
 } from "../models";
-import { Course, Db } from "../types";
+import { Course } from "../types";
+import { productsCollection } from "./db";
 
 export interface ICoursesRepository {
-  findCourses(title?: string): CourseViewModel[];
-  findCourseById(id: string): CourseViewModel | null;
-  createCourse(course: CourseCreateModel): CourseViewModel;
-  deleteCourse(id: string): boolean;
-  updateCourse(id: string, course: CourseUpdateModel): CourseViewModel | null;
+  findCourses(title?: string): Promise<CourseViewModel[]>;
+  findCourseById(id: number): Promise<CourseViewModel | null>;
+  createCourse(course: CourseCreateModel): Promise<CourseViewModel>;
+  updateCourse(
+    id: number,
+    course: CourseUpdateModel,
+  ): Promise<CourseViewModel | null>;
+  deleteCourse(id: number): Promise<boolean>;
 }
 
 export class CoursesRepository implements ICoursesRepository {
-  private db: Db = db;
-
-  findCourses(title?: string): CourseViewModel[] {
-    let filteredCourses: Course[] = this.db.courses;
-
+  async findCourses(title?: string): Promise<CourseViewModel[]> {
+    const filter: any = {};
     if (title) {
-      filteredCourses = filteredCourses.filter((c) => {
-        return c.title.includes(title!);
-      });
+      filter.title = title;
     }
 
-    return filteredCourses.map((dbCourse) => getCourseViewModel(dbCourse));
+    const courses = await productsCollection.find(filter).toArray();
+    return courses.map((dbCourse) => getCourseViewModel(dbCourse));
   }
 
-  findCourseById(id: string): CourseViewModel | null {
-    const foundCourse: Course | undefined = this.db.courses.find(
-      (c) => c.id === +id,
-    );
+  async findCourseById(id: number): Promise<CourseViewModel | null> {
+    const foundCourse: Course | null = await productsCollection.findOne({ id });
     return foundCourse ? getCourseViewModel(foundCourse) : null;
   }
 
-  createCourse(course: CourseCreateModel): CourseViewModel {
+  async createCourse(course: CourseCreateModel): Promise<CourseViewModel> {
     const createdCourse: Course = {
       id: new Date().getTime(),
       title: course.title,
@@ -45,34 +42,29 @@ export class CoursesRepository implements ICoursesRepository {
       studentsCount: 0,
     };
 
-    this.db.courses.push(createdCourse);
+    await productsCollection.insertOne(createdCourse);
     return getCourseViewModel(createdCourse);
   }
 
-  deleteCourse(id: string): boolean {
-    const foundCourseIdx = this.db.courses.findIndex((c) => c.id === +id);
+  async updateCourse(
+    id: number,
+    course: CourseUpdateModel,
+  ): Promise<CourseViewModel | null> {
+    const result = await productsCollection.updateOne({ id }, { $set: course });
 
-    if (foundCourseIdx === -1) {
-      return false;
-    }
-
-    this.db.courses.splice(foundCourseIdx, 1);
-    return true;
-  }
-
-  updateCourse(id: string, course: CourseUpdateModel): CourseViewModel | null {
-    const foundCourseIdx: number = db.courses.findIndex((c) => c.id === +id);
-
-    if (foundCourseIdx === -1) {
+    if (result.matchedCount === 0) {
       return null;
     }
 
-    const updatedCourse = {
-      ...this.db.courses[foundCourseIdx],
-      ...course,
-    };
+    const updatedCourse: CourseViewModel | null =
+      await productsCollection.findOne({ id });
 
-    db.courses[foundCourseIdx] = updatedCourse;
-    return getCourseViewModel(updatedCourse);
+    return getCourseViewModel(updatedCourse as Course);
+  }
+
+  async deleteCourse(id: number): Promise<boolean> {
+    const result = await productsCollection.deleteOne({ id });
+
+    return result.deletedCount !== 0;
   }
 }

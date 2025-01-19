@@ -1,5 +1,5 @@
 import { Router, Request, Response } from "express";
-import { Db, HttpStatuses } from "../types";
+import { HttpStatuses } from "../types";
 import { ITestsRepository, TestsRepository } from "../repositories";
 
 export const getTestsRouter = () => {

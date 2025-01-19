@@ -25,22 +25,22 @@ export const getCoursesRouter = () => {
 
   router.get(
     "/",
-    (
+    async (
       req: RequestQuery<CoursesQueryModel>,
       res: Response<CourseViewModel[]>,
     ) => {
-      const foundCourses = repository.findCourses(req.query.title);
+      const foundCourses = await repository.findCourses(req.query.title);
       res.json(foundCourses);
     },
   );
 
   router.get(
     "/:id",
-    (
+    async (
       req: RequestParams<CourseURIParamsModel>,
       res: Response<CourseViewModel | ErrorResponse>,
     ) => {
-      const foundCourse = repository.findCourseById(req.params.id);
+      const foundCourse = await repository.findCourseById(+req.params.id);
 
       if (!foundCourse) {
         res
@@ -57,31 +57,12 @@ export const getCoursesRouter = () => {
     "/",
     courseValidator,
     inputValidationMiddleware,
-    (
+    async (
       req: RequestBody<CourseCreateModel>,
       res: Response<CourseViewModel | { errors: ValidationError[] }>,
     ) => {
-      const createdCourse = repository.createCourse(req.body);
+      const createdCourse = await repository.createCourse(req.body);
       res.status(HttpStatuses.CREATED).json(createdCourse);
-    },
-  );
-
-  router.delete(
-    "/:id",
-    (
-      req: RequestParams<CourseURIParamsModel>,
-      res: Response<ErrorResponse | undefined>,
-    ) => {
-      const isDeletedCourse = repository.deleteCourse(req.params.id);
-
-      if (!isDeletedCourse) {
-        res
-          .sendStatus(HttpStatuses.NOT_FOUND)
-          .send({ message: "Course not found" });
-        return;
-      }
-
-      res.sendStatus(HttpStatuses.NO_CONTENT);
     },
   );
 
@@ -89,13 +70,16 @@ export const getCoursesRouter = () => {
     "/:id",
     courseValidator,
     inputValidationMiddleware,
-    (
+    async (
       req: RequestBodyParams<CourseUpdateModel, CourseURIParamsModel>,
       res: Response<
         CourseViewModel | { errors: ValidationError[] } | ErrorResponse
       >,
     ) => {
-      const updatedCourse = repository.updateCourse(req.params.id, req.body);
+      const updatedCourse = await repository.updateCourse(
+        +req.params.id,
+        req.body,
+      );
 
       if (!updatedCourse) {
         res
@@ -105,6 +89,25 @@ export const getCoursesRouter = () => {
       }
 
       res.status(HttpStatuses.CREATED).json(updatedCourse);
+    },
+  );
+
+  router.delete(
+    "/:id",
+    async (
+      req: RequestParams<CourseURIParamsModel>,
+      res: Response<ErrorResponse | undefined>,
+    ) => {
+      const isDeletedCourse = await repository.deleteCourse(+req.params.id);
+
+      if (!isDeletedCourse) {
+        res
+          .sendStatus(HttpStatuses.NOT_FOUND)
+          .send({ message: "Course not found" });
+        return;
+      }
+
+      res.sendStatus(HttpStatuses.NO_CONTENT);
     },
   );
 

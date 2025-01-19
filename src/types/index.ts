@@ -12,10 +12,6 @@ export type Course = {
   studentsCount: number;
 };
 
-export type Db = {
-  courses: Course[];
-};
-
 export type ErrorResponse = {
   message: string;
 };
