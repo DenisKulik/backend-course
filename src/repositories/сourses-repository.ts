@@ -10,7 +10,7 @@ import { productsCollection } from "./db";
 export interface ICoursesRepository {
   findCourses(title?: string): Promise<CourseViewModel[]>;
   findCourseById(id: number): Promise<CourseViewModel | null>;
-  createCourse(course: CourseCreateModel): Promise<CourseViewModel>;
+  createCourse(course: Course): Promise<CourseViewModel>;
   updateCourse(
     id: number,
     course: CourseUpdateModel,
@@ -34,16 +34,11 @@ export class CoursesRepository implements ICoursesRepository {
     return foundCourse ? getCourseViewModel(foundCourse) : null;
   }
 
-  async createCourse(course: CourseCreateModel): Promise<CourseViewModel> {
-    const createdCourse: Course = {
-      id: new Date().getTime(),
-      title: course.title,
-      price: course.price,
-      studentsCount: 0,
-    };
-
-    await productsCollection.insertOne(createdCourse);
-    return getCourseViewModel(createdCourse);
+  async createCourse(course: Course): Promise<CourseViewModel> {
+    await productsCollection.insertOne(course);
+    const createdCourse: CourseViewModel | null =
+      await productsCollection.findOne({ id: course.id });
+    return getCourseViewModel(createdCourse as Course);
   }
 
   async updateCourse(

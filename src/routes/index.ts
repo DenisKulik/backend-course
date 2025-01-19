@@ -1,2 +1,2 @@
-export * from "./courses";
-export * from "./tests";
+export * from "./courses-router";
+export * from "./tests-router";

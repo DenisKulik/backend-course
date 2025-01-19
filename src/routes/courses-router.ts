@@ -15,13 +15,13 @@ import {
   RequestParams,
   RequestQuery,
 } from "../types";
-import { CoursesRepository, ICoursesRepository } from "../repositories";
+import { CoursesService, ICoursesService } from "../domain";
 import { courseValidator } from "../utils";
 import { inputValidationMiddleware } from "../middlewares";
 
 export const getCoursesRouter = () => {
   const router = Router();
-  const repository: ICoursesRepository = new CoursesRepository();
+  const service: ICoursesService = new CoursesService();
 
   router.get(
     "/",
@@ -29,7 +29,7 @@ export const getCoursesRouter = () => {
       req: RequestQuery<CoursesQueryModel>,
       res: Response<CourseViewModel[]>,
     ) => {
-      const foundCourses = await repository.findCourses(req.query.title);
+      const foundCourses = await service.findCourses(req.query.title);
       res.json(foundCourses);
     },
   );
@@ -40,7 +40,7 @@ export const getCoursesRouter = () => {
       req: RequestParams<CourseURIParamsModel>,
       res: Response<CourseViewModel | ErrorResponse>,
     ) => {
-      const foundCourse = await repository.findCourseById(+req.params.id);
+      const foundCourse = await service.findCourseById(+req.params.id);
 
       if (!foundCourse) {
         res
@@ -61,7 +61,7 @@ export const getCoursesRouter = () => {
       req: RequestBody<CourseCreateModel>,
       res: Response<CourseViewModel | { errors: ValidationError[] }>,
     ) => {
-      const createdCourse = await repository.createCourse(req.body);
+      const createdCourse = await service.createCourse(req.body);
       res.status(HttpStatuses.CREATED).json(createdCourse);
     },
   );
@@ -76,7 +76,7 @@ export const getCoursesRouter = () => {
         CourseViewModel | { errors: ValidationError[] } | ErrorResponse
       >,
     ) => {
-      const updatedCourse = await repository.updateCourse(
+      const updatedCourse = await service.updateCourse(
         +req.params.id,
         req.body,
       );
@@ -98,7 +98,7 @@ export const getCoursesRouter = () => {
       req: RequestParams<CourseURIParamsModel>,
       res: Response<ErrorResponse | undefined>,
     ) => {
-      const isDeletedCourse = await repository.deleteCourse(+req.params.id);
+      const isDeletedCourse = await service.deleteCourse(+req.params.id);
 
       if (!isDeletedCourse) {
         res
