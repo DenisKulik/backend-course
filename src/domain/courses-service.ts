@@ -7,7 +7,11 @@ import { Course } from "../types";
 import { CoursesRepository, ICoursesRepository } from "../repositories";
 
 export interface ICoursesService {
-  findCourses(title?: string): Promise<CourseViewModel[]>;
+  findCourses(
+    title?: string,
+    sortBy?: string,
+    direction?: string,
+  ): Promise<CourseViewModel[]>;
   findCourseById(id: number): Promise<CourseViewModel | null>;
   createCourse(course: CourseCreateModel): Promise<CourseViewModel>;
   updateCourse(
@@ -20,8 +24,12 @@ export interface ICoursesService {
 export class CoursesService implements ICoursesService {
   private repository: ICoursesRepository = new CoursesRepository();
 
-  async findCourses(title?: string): Promise<CourseViewModel[]> {
-    return this.repository.findCourses(title);
+  async findCourses(
+    title?: string,
+    sortBy?: string,
+    direction?: string,
+  ): Promise<CourseViewModel[]> {
+    return this.repository.findCourses(title, sortBy, direction);
   }
 
   async findCourseById(id: number): Promise<CourseViewModel | null> {

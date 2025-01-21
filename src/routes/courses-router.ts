@@ -29,7 +29,11 @@ export const getCoursesRouter = () => {
       req: RequestQuery<CoursesQueryModel>,
       res: Response<CourseViewModel[]>,
     ) => {
-      const foundCourses = await service.findCourses(req.query.title);
+      const foundCourses = await service.findCourses(
+        req.query.title,
+        req.query.sortBy,
+        req.query.direction,
+      );
       res.json(foundCourses);
     },
   );
