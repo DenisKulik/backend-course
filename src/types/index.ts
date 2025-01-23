@@ -1,4 +1,5 @@
 import { Request } from "express";
+import { ObjectId } from "mongodb";
 
 export type RequestBody<T> = Request<{}, {}, T>;
 export type RequestParams<T> = Request<T>;
@@ -12,6 +13,15 @@ export type Course = {
   studentsCount: number;
 };
 
+export type UserDBType = {
+  _id: ObjectId;
+  userName: string;
+  email: string;
+  passwordHash: string;
+  passwordSalt: string;
+  createdAt: Date;
+};
+
 export type ErrorResponse = {
   message: string;
 };
@@ -19,6 +29,7 @@ export type ErrorResponse = {
 export enum HttpStatuses {
   OK = 200,
   BAD_REQUEST = 400,
+  UNAUTHORIZED = 401,
   NOT_FOUND = 404,
   CREATED = 201,
   NO_CONTENT = 204,
