@@ -1,6 +1,7 @@
 import { Router } from "express";
-import { JwtService, UsersService } from "../domain";
+import { UsersService } from "../domain";
 import { HttpStatuses, UserDBType } from "../types";
+import { JwtService } from "../application";
 
 export const getAuthRouter = () => {
   const router = Router();
@@ -28,8 +29,8 @@ export const getAuthRouter = () => {
     );
 
     if (user) {
-      // const token = await jwtService.createJWT(user);
-      res.status(HttpStatuses.CREATED).send({ message: "Success" });
+      const token = await jwtService.createJWT(user);
+      res.status(HttpStatuses.CREATED).send({ message: "Success", token });
     } else {
       res
         .sendStatus(HttpStatuses.UNAUTHORIZED)
