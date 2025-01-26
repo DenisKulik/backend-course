@@ -18,6 +18,7 @@ import {
 import { CoursesService, ICoursesService } from "../domain";
 import { courseValidator } from "../utils";
 import { inputValidationMiddleware } from "../middlewares";
+import { authMiddleware } from "../middlewares/auth-middleware";
 
 export const getCoursesRouter = () => {
   const router = Router();
@@ -61,6 +62,7 @@ export const getCoursesRouter = () => {
     "/",
     courseValidator,
     inputValidationMiddleware,
+    authMiddleware,
     async (
       req: RequestBody<CourseCreateModel>,
       res: Response<CourseViewModel | { errors: ValidationError[] }>,

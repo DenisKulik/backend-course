@@ -1,6 +1,14 @@
 import { Request } from "express";
 import { ObjectId } from "mongodb";
 
+declare global {
+  namespace Express {
+    export interface Request {
+      user?: UserDBType;
+    }
+  }
+}
+
 export type RequestBody<T> = Request<{}, {}, T>;
 export type RequestParams<T> = Request<T>;
 export type RequestQuery<T> = Request<{}, {}, {}, T>;
