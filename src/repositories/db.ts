@@ -1,22 +1,33 @@
-import { Collection, Db, MongoClient } from "mongodb";
+import mongoose from "mongoose";
 import { Course, UserDBType } from "../types";
 
 const mongoUri = process.env.mongoUri || "mongodb://127.0.0.1:27017";
+const mongoDbName = process.env.mongoDbName || "school";
 
-const client: MongoClient = new MongoClient(mongoUri);
-const schoolDb: Db = client.db("school");
-export const productsCollection: Collection<Course> =
-  schoolDb.collection<Course>("courses");
-export const usersCollection: Collection<UserDBType> =
-  schoolDb.collection<UserDBType>("users");
+const userScheme = new mongoose.Schema({
+  userName: { type: String, required: true },
+  email: String,
+  passwordHash: String,
+  passwordSalt: String,
+  createdAt: Date,
+});
+
+const courseScheme = new mongoose.Schema({
+  id: Number,
+  title: String,
+  price: Number,
+  studentsCount: Number,
+});
+
+export const UserModel = mongoose.model<UserDBType>("users", userScheme);
+export const CourseModel = mongoose.model<Course>("courses", courseScheme);
 
 export const connectDB = async () => {
   try {
-    await client.connect();
-    await client.db("school").command({ ping: 1 });
+    await mongoose.connect(`${mongoUri}/${mongoDbName}`);
     console.log("Connected successfully to server");
   } catch {
     console.log("Failed to connect to server");
-    await client.close();
+    await mongoose.disconnect();
   }
 };

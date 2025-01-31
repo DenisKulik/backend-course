@@ -37,7 +37,7 @@ export class CoursesService implements ICoursesService {
   }
 
   async createCourse(course: CourseCreateModel): Promise<CourseViewModel> {
-    const createdCourse: Course = {
+    const createdCourse: Omit<Course, "_id"> = {
       id: new Date().getTime(),
       title: course.title,
       price: course.price,

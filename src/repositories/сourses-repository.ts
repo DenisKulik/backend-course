@@ -1,8 +1,8 @@
 import { getCourseViewModel } from "../utils";
 import { CourseUpdateModel, CourseViewModel } from "../models";
 import { Course } from "../types";
-import { productsCollection } from "./db";
 import { Sort, UpdateResult } from "mongodb";
+import { CourseModel } from "./db";
 
 export interface ICoursesRepository {
   findCourses(
@@ -11,7 +11,7 @@ export interface ICoursesRepository {
     direction?: string,
   ): Promise<CourseViewModel[]>;
   findCourseById(id: number): Promise<CourseViewModel | null>;
-  createCourse(course: Course): Promise<CourseViewModel>;
+  createCourse(course: Omit<Course, "_id">): Promise<CourseViewModel>;
   updateCourse(
     id: number,
     course: CourseUpdateModel,
@@ -35,19 +35,20 @@ export class CoursesRepository implements ICoursesRepository {
       sort[sortBy] = direction === "asc" ? 1 : -1;
     }
 
-    const courses = await productsCollection.find(filter).sort(sort).toArray();
+    const courses = await CourseModel.find(filter).sort(sort).lean();
     return courses.map((dbCourse) => getCourseViewModel(dbCourse));
   }
 
   async findCourseById(id: number): Promise<CourseViewModel | null> {
-    const foundCourse: Course | null = await productsCollection.findOne({ id });
+    const foundCourse: Course | null = await CourseModel.findOne({ id });
     return foundCourse ? getCourseViewModel(foundCourse) : null;
   }
 
-  async createCourse(course: Course): Promise<CourseViewModel> {
-    await productsCollection.insertOne(course);
-    const createdCourse: CourseViewModel | null =
-      await productsCollection.findOne({ id: course.id });
+  async createCourse(course: Omit<Course, "_id">): Promise<CourseViewModel> {
+    await CourseModel.create(course);
+    const createdCourse: CourseViewModel | null = await CourseModel.findOne({
+      id: course.id,
+    });
     return getCourseViewModel(createdCourse as Course);
   }
 
@@ -55,7 +56,7 @@ export class CoursesRepository implements ICoursesRepository {
     id: number,
     course: CourseUpdateModel,
   ): Promise<CourseViewModel | null> {
-    const result: UpdateResult<Course> = await productsCollection.updateOne(
+    const result: UpdateResult<Course> = await CourseModel.updateOne(
       { id },
       { $set: course },
     );
@@ -64,14 +65,15 @@ export class CoursesRepository implements ICoursesRepository {
       return null;
     }
 
-    const updatedCourse: CourseViewModel | null =
-      await productsCollection.findOne({ id });
+    const updatedCourse: CourseViewModel | null = await CourseModel.findOne({
+      id,
+    });
 
     return getCourseViewModel(updatedCourse as Course);
   }
 
   async deleteCourse(id: number): Promise<boolean> {
-    const result = await productsCollection.deleteOne({ id });
+    const result = await CourseModel.deleteOne({ id });
 
     return result.deletedCount !== 0;
   }

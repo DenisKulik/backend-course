@@ -1,6 +1,6 @@
 import { ObjectId } from "mongodb";
-import { usersCollection } from "./db";
 import { UserDBType } from "../types";
+import { UserModel } from "./db";
 
 export interface IUsersRepository {
   getAllUsers(): Promise<UserDBType[]>;
@@ -11,23 +11,23 @@ export interface IUsersRepository {
 
 export class UsersRepository {
   async getAllUsers() {
-    return usersCollection.find().sort("createdAt", -1).toArray();
+    return UserModel.find().sort({ createdAt: -1 }).lean();
   }
 
   async createUser(user: UserDBType): Promise<UserDBType> {
-    const result = await usersCollection.insertOne(user);
+    const result = await UserModel.create(user);
     return user;
   }
 
   async findUserById(id: ObjectId) {
-    const user = await usersCollection.findOne({ _id: id });
+    const user = await UserModel.findOne({ _id: id });
     if (!user) return null;
 
     return user;
   }
 
   async findUserByLoginOrEmail(loginOrEmail: string) {
-    const user = await usersCollection.findOne({
+    const user = await UserModel.findOne({
       $or: [{ userName: loginOrEmail }, { email: loginOrEmail }],
     });
     return user;
